@@ -4,14 +4,6 @@
 #include "menu.h"
 #include "TilaelData.h"
 
-inline void PapyrusSay(RE::TESObjectREFR* target, RE::TESTopic* toSay, RE::Character* toSpeakAs, bool playerHead) {
-    if (target && toSay) {
-        using func_t = void (*)(std::int64_t, std::int64_t, RE::TESObjectREFR*, RE::TESTopic*, RE::Character*, bool);
-        static REL::Relocation<func_t> func{ REL::VariantID(
-            55689, 56220, 0x9D1470) };  // takes SE, AE, then VR offset b/c VR might no exist they are filled manually
-        return func(NULL, NULL, target, toSay, toSpeakAs, playerHead);
-    }
-}
 
 struct OurEventSink : public RE::BSTEventSink<RE::LevelIncrease::Event> {
     OurEventSink() = default;

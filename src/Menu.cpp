@@ -2,6 +2,7 @@
 #include "Menu.h"
 #include "plugin.hpp"
 #include "TilaelData.h"
+#include <unordered_map>
 
 namespace logger = SKSE::log;
 
@@ -15,6 +16,11 @@ namespace UI {
 
     unordered_map<std::string, std::string> perks;
 
+    RE::TESTopic* TFQuest_TFQuestSilentLine_00005A96_1 = nullptr;
+
+    int tempSkillPoints = 0;
+
+
     void Register() {
         if (!SKSEMenuFramework::IsInstalled()) return;
 
@@ -27,6 +33,8 @@ namespace UI {
 
         static bool initialized = false;
 
+        static bool skillPointsSelected = false;
+
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Text, ImGuiMCP::ImVec4{ 0.455f, 0.753f, 0.988f, 1.0f });
 
         FontAwesome::PushSolid();
@@ -34,37 +42,21 @@ namespace UI {
 
         ImGuiMCP::Text("%s Tilael (Level %d)", iconUtf8.c_str(), tilaelData.level);
         ImGuiMCP::PopStyleColor();
-        ImGuiMCP::SameLine();
-
-      //  if (ImGuiMCP::Button("Save INI")) {
-            //  saveSettingsToIni();
-       // }
-        if (ImGuiMCP::IsItemHovered())
-            ImGuiMCP::SetTooltip("Write current settings to Tilael.ini");
 
         ImGuiMCP::Separator();
 
         if (initialized == false){
+
         if (!getTilaelActor()) return;
 
         getPerksForNPC(tilaelActor);
+
+        tempSkillPoints = tilaelData.skillPoints;
+
+        ResetSkillGlobals();
         }
 
         initialized = true;
-
-        static bool open = true;
-
-       // if (ImGuiMCP::Begin("Tilael Stats", &open, ImGuiMCP::ImGuiWindowFlags_NoTitleBar)) {
-
-  // =====================
-// HEADER
-// =====================
-      //  ImGuiMCP::TextColored(
-        //    ImGuiMCP::ImVec4{ 0.6f, 0.8f, 1.0f, 1.0f },
-          //  "%s (Level %d)",
-            //tilaelActor->GetDisplayFullName(),
-       //     tilaelActor->GetLevel()
-        //);
 
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
@@ -91,9 +83,25 @@ namespace UI {
 
         ImGuiMCP::TextColored(
             ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f },
-            "SkillPoints %d",
-            tilaelData.skillPoints
+            "SkillPoints: %d",
+            tempSkillPoints
         );
+
+        if (skillPointsSelected) {
+
+            ImGuiMCP::SameLine();
+
+            if (ImGuiMCP::Button("Level Up")) {
+                PapyrusSay(tilaelActor, TFQuest_TFQuestSilentLine_00005A96_1, nullptr, false);
+                skillPointsSelected = false;
+               // ResetSkillGlobals();
+
+            }
+            if (ImGuiMCP::IsItemHovered())
+                ImGuiMCP::SetTooltip("Spend Skill Points");
+        }
+
+        
         ImGuiMCP::Columns(2, nullptr, false);
 
         auto SkillRow = [&](const char* name, RE::ActorValue av)
@@ -103,7 +111,7 @@ namespace UI {
 
                 ImGuiMCP::Text("%.0f", tilaelActor->GetActorValueMax(av));
 
-                if (tilaelData.skillPoints >= 1)
+                if (tempSkillPoints > 0)
                 {
                     ImGuiMCP::SameLine();
 
@@ -115,18 +123,22 @@ namespace UI {
 
                     if (ImGuiMCP::SmallButton("+"))
                     {
-                        // spend skill point
+                        if (auto global = GetGlobalForActorValue(av)) {
+                            logger::info("Skill point allocated");
+                            global->value += 1.0f;
+                            logger::info("global value: {}", global->value);
+                            tempSkillPoints -= 1;
+                            skillPointsSelected = true;
+                        }
                     }
 
                     ImGuiMCP::PopStyleColor(3);
                     ImGuiMCP::PopID();
                 }
 
-
                 ImGuiMCP::NextColumn();
             };
-
-
+       
         SkillRow("One-Handed", RE::ActorValue::kOneHanded);
         SkillRow("Two-Handed", RE::ActorValue::kTwoHanded);
         SkillRow("Archery", RE::ActorValue::kArchery);
@@ -156,6 +168,22 @@ namespace UI {
         ImGuiMCP::Unindent(10);
         ImGuiMCP::EndChild();
             ImGuiMCP::End();
+    }
+
+
+    RE::TESGlobal* GetGlobalForActorValue(RE::ActorValue av) {
+
+        switch (av) {
+        case RE::ActorValue::kOneHanded:   return oneHanded;
+        case RE::ActorValue::kTwoHanded:   return twoHanded;
+        case RE::ActorValue::kArchery:     return archery;
+        case RE::ActorValue::kBlock:       return block;
+        case RE::ActorValue::kLightArmor:  return lightArmor;
+        case RE::ActorValue::kHeavyArmor:  return heavyArmor;
+        case RE::ActorValue::kDestruction: return destruction;
+        case RE::ActorValue::kRestoration: return restoration;
+        default: return nullptr;
+        }
     }
 
     void displayVital(RE::ActorValue actorValue, const std::string& icon, ImGuiMCP::ImVec4 color) {
@@ -225,6 +253,23 @@ namespace UI {
           }
       }
     }
+  
+
+
+     void ResetSkillGlobals() {
+
+         if (oneHanded)      oneHanded->value = 0.0f;
+         if (twoHanded)      twoHanded->value = 0.0f;
+         if (archery)        archery->value = 0.0f;
+         if (block)          block->value = 0.0f;
+         if (lightArmor)     lightArmor->value = 0.0f;
+         if (heavyArmor)     heavyArmor->value = 0.0f;
+         if (destruction)    destruction->value = 0.0f;
+         if (restoration)    restoration->value = 0.0f;
+     }
+
+
+
 } 
 
 

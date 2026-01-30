@@ -8,6 +8,18 @@ using json = nlohmann::json;
 
 FollowerData tilaelData;
 
+RE::TESQuest* tilaelQuest = nullptr;
+
+RE::TESGlobal* oneHanded = nullptr;
+RE::TESGlobal* twoHanded = nullptr;
+RE::TESGlobal* archery = nullptr;
+RE::TESGlobal* block = nullptr;
+RE::TESGlobal* lightArmor = nullptr;
+RE::TESGlobal* heavyArmor = nullptr;
+RE::TESGlobal* destruction = nullptr;
+RE::TESGlobal* restoration = nullptr;
+
+
 bool loadConfiguration(FollowerData& config, const std::string& configPath) {
     try {
         std::ifstream configFile(configPath);
