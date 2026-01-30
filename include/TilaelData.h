@@ -108,20 +108,20 @@ inline void initialize() {
     }
     
     // Silent dialogue topic
-    UI::TFQuest_TFQuestSilentLine_00005A96_1 = dataHandler->LookupForm<RE::TESTopic>(0x005A96, "Tilael.esp");
+    UI::TFQuest_TFQuestSilentLine_00005A96_1 = dataHandler->LookupForm<RE::TESTopic>(0x700, "Tilael.esp");
     if (!UI::TFQuest_TFQuestSilentLine_00005A96_1) {
         logger::warn("Silent dialogue topic FE005A96 not found.");
     }
 
     // Globals using only the last 3 digits
-     oneHanded = dataHandler->LookupForm<RE::TESGlobal>(0x98D, "Tilael.esp");
-     twoHanded = dataHandler->LookupForm<RE::TESGlobal>(0x98E, "Tilael.esp");
-     archery = dataHandler->LookupForm<RE::TESGlobal>(0x98F, "Tilael.esp");
-     block = dataHandler->LookupForm<RE::TESGlobal>(0x990, "Tilael.esp");
-     lightArmor = dataHandler->LookupForm<RE::TESGlobal>(0x991, "Tilael.esp");
-     heavyArmor = dataHandler->LookupForm<RE::TESGlobal>(0x992, "Tilael.esp");
-     destruction = dataHandler->LookupForm<RE::TESGlobal>(0x993, "Tilael.esp");
-     restoration = dataHandler->LookupForm<RE::TESGlobal>(0x994, "Tilael.esp");
+     oneHanded = dataHandler->LookupForm<RE::TESGlobal>(0x901, "Tilael.esp");
+     twoHanded = dataHandler->LookupForm<RE::TESGlobal>(0x902, "Tilael.esp");
+     archery = dataHandler->LookupForm<RE::TESGlobal>(0x903, "Tilael.esp");
+     block = dataHandler->LookupForm<RE::TESGlobal>(0x904, "Tilael.esp");
+     lightArmor = dataHandler->LookupForm<RE::TESGlobal>(0x905, "Tilael.esp");
+     heavyArmor = dataHandler->LookupForm<RE::TESGlobal>(0x906, "Tilael.esp");
+     destruction = dataHandler->LookupForm<RE::TESGlobal>(0x907, "Tilael.esp");
+     restoration = dataHandler->LookupForm<RE::TESGlobal>(0x908, "Tilael.esp");
 
     // Optional: warn if any globals are missing
     if (!oneHanded) logger::warn("OneHanded global not found.");

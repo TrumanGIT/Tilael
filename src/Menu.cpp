@@ -8,18 +8,8 @@ namespace logger = SKSE::log;
 
 namespace UI {
 
-    RE::TESQuest* tilaelQuest;
 
-    RE::ObjectRefHandle tilaelRefHandle;
-
-    RE::Actor* tilaelActor;
-
-    unordered_map<std::string, std::string> perks;
-
-    RE::TESTopic* TFQuest_TFQuestSilentLine_00005A96_1 = nullptr;
-
-    int tempSkillPoints = 0;
-
+static int tempSkillPoints = 0;
 
     void Register() {
         if (!SKSEMenuFramework::IsInstalled()) return;
@@ -54,6 +44,11 @@ namespace UI {
         tempSkillPoints = tilaelData.skillPoints;
 
         ResetSkillGlobals();
+
+        fillTempAVMap(tilaelActor, tempAVs); 
+
+        fillTempAVMap(tilaelActor, intialAVs);
+
         }
 
         initialized = true;
@@ -91,11 +86,12 @@ namespace UI {
 
             ImGuiMCP::SameLine();
 
-            if (ImGuiMCP::Button("Level Up")) {
+            if (ImGuiMCP::Button("Level Up") && tempSkillPoints == 0 ) {
                 PapyrusSay(tilaelActor, TFQuest_TFQuestSilentLine_00005A96_1, nullptr, false);
+                tilaelData.skillPoints = tempSkillPoints;
+                tilaelData.level++; 
+                saveConfiguration(tilaelData, tilaelData.configPath); 
                 skillPointsSelected = false;
-               // ResetSkillGlobals();
-
             }
             if (ImGuiMCP::IsItemHovered())
                 ImGuiMCP::SetTooltip("Spend Skill Points");
@@ -109,13 +105,15 @@ namespace UI {
                 ImGuiMCP::Text("%s", name);
                 ImGuiMCP::NextColumn();
 
-                ImGuiMCP::Text("%.0f", tilaelActor->GetActorValueMax(av));
+                const auto& avAsInt = static_cast<int>(av);
+            
+                ImGuiMCP::Text("%.0f",tempAVs[avAsInt]);
 
-                if (tempSkillPoints > 0)
+                if (tempSkillPoints > 0) 
                 {
                     ImGuiMCP::SameLine();
 
-                    ImGuiMCP::PushID(static_cast<int>(av));
+                    ImGuiMCP::PushID(avAsInt);
 
                     ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Button, { 0.5f, 0.7f, 1.f, 1.f });
                     ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered, ImGuiMCP::ImVec4{ 0.6f, 0.8f, 1.f, 1.f });
@@ -124,17 +122,52 @@ namespace UI {
                     if (ImGuiMCP::SmallButton("+"))
                     {
                         if (auto global = GetGlobalForActorValue(av)) {
-                            logger::info("Skill point allocated");
                             global->value += 1.0f;
-                            logger::info("global value: {}", global->value);
+                            logger::info(" added global value: {}", global->value);
                             tempSkillPoints -= 1;
+                            tempAVs[avAsInt] += 1;
                             skillPointsSelected = true;
                         }
                     }
-
-                    ImGuiMCP::PopStyleColor(3);
-                    ImGuiMCP::PopID();
                 }
+
+                ImGuiMCP::SameLine();
+
+                ImGuiMCP::PopStyleColor(3);
+                ImGuiMCP::PopID();
+
+                if (skillPointsSelected == true) {
+                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Button,
+                        ImGuiMCP::ImVec4{ 0.85f, 0.2f, 0.2f, 1.f });
+
+                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered,
+                        ImGuiMCP::ImVec4{ 0.95f, 0.3f, 0.3f, 1.f });
+
+                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonActive,
+                        ImGuiMCP::ImVec4{ 0.75f, 0.15f, 0.15f, 1.f });
+
+                    if (ImGuiMCP::SmallButton("- "))
+                    {
+                        if (auto global = GetGlobalForActorValue(av)) {
+
+                            logger::info("temp av = {} Initial AV = {}", tempAVs[avAsInt], intialAVs[avAsInt]);
+
+                            // Only subtract if above the initial value
+                            if (tempAVs[avAsInt] > intialAVs[avAsInt]) {
+                                global->value -= 1.0f;
+                                tempSkillPoints += 1;
+                                tempAVs[avAsInt] -= 1;
+                                if (checkIfGlobalsZeroed()) skillPointsSelected = false;
+                            }
+
+                            // else: do nothing, but still pop afterwards
+                        }
+                    }
+                }
+
+
+                ImGuiMCP::PopStyleColor(3);
+                ImGuiMCP::PopID();
 
                 ImGuiMCP::NextColumn();
             };
@@ -170,6 +203,19 @@ namespace UI {
             ImGuiMCP::End();
     }
 
+
+    void fillTempAVMap(RE::Actor* actor, std::unordered_map<int, float>& avMap) {
+        for (RE::ActorValue av : {
+            RE::ActorValue::kOneHanded, RE::ActorValue::kTwoHanded, RE::ActorValue::kArchery,
+                RE::ActorValue::kBlock, RE::ActorValue::kLightArmor, RE::ActorValue::kHeavyArmor,
+                RE::ActorValue::kDestruction, RE::ActorValue::kRestoration
+        }) {
+            int key = static_cast<int>(av);
+            if (!avMap.count(key)) {
+                avMap[key] = actor->GetActorValueMax(av);
+            }
+        }
+    }
 
     RE::TESGlobal* GetGlobalForActorValue(RE::ActorValue av) {
 
@@ -253,8 +299,6 @@ namespace UI {
           }
       }
     }
-  
-
 
      void ResetSkillGlobals() {
 
@@ -269,6 +313,27 @@ namespace UI {
      }
 
 
+     bool checkIfGlobalsZeroed() {
+         // Put all globals into an array so we can loop
+         const RE::TESGlobal* globals[] = {
+             oneHanded,
+             twoHanded,
+             archery,
+             block,
+             lightArmor,
+             heavyArmor,
+             destruction,
+             restoration
+         };
+
+         for (auto g : globals) {
+             if (g && g->value != 0.0f) {
+                 return false;  
+             }
+         }
+
+         return true;  // All globals were 0
+     }
 
 } 
 

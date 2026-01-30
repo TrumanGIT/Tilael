@@ -12,19 +12,24 @@ namespace UI {
 
    static  const auto upArrowIcon = FontAwesome::UnicodeToUtf8(0xf004);   //up arrow for increasing skills
 
+   inline std::unordered_map<int, float> tempAVs{};
 
-   extern RE::TESTopic* TFQuest_TFQuestSilentLine_00005A96_1;
+   inline std::unordered_map<int, float> intialAVs{};
+
+   inline unordered_map<std::string, std::string>perks;
+
+   inline RE::TESTopic* TFQuest_TFQuestSilentLine_00005A96_1;
+
+   inline RE::TESQuest* tilaelQuest;
+
+   inline RE::ObjectRefHandle tilaelRefHandle;
+
+   inline RE::Actor* tilaelActor;
+
+
 
     void Register();
     void __stdcall renderTilaelMenu();
-
-    extern RE::TESQuest* tilaelQuest;
-
-    extern RE::ObjectRefHandle tilaelRefHandle;
-
-    extern RE::Actor* tilaelActor;
-
-    extern unordered_map<std::string, std::string>perks;
 
     bool getTilaelActor(); 
 
@@ -35,6 +40,10 @@ namespace UI {
     RE::TESGlobal* GetGlobalForActorValue(RE::ActorValue av);
 
     void ResetSkillGlobals();
+
+    bool checkIfGlobalsZeroed();
+
+    void fillTempAVMap(RE::Actor* actor, std::unordered_map<int, float>& avMap);
 
     inline void PapyrusSay(RE::TESObjectREFR* target, RE::TESTopic* toSay, RE::Character* toSpeakAs, bool playerHead) {
         if (target && toSay) {
