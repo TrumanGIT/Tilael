@@ -33,6 +33,21 @@ static int tempSkillPoints = 0;
         ImGuiMCP::Text("%s Tilael (Level %d)", iconUtf8.c_str(), tilaelData.level);
         ImGuiMCP::PopStyleColor();
 
+        if (tempSkillPoints == 0 && skillPointsSelected) {
+
+            ImGuiMCP::SameLine();
+
+            if (ImGuiMCP::Button("Level Up")) {
+                PapyrusSay(tilaelActor, TFQuest_TFQuestSilentLine_00005A96_1, nullptr, false);
+                tilaelData.skillPoints = tempSkillPoints;
+                tilaelData.level++;
+                saveConfiguration(tilaelData, tilaelData.configPath);
+                skillPointsSelected = false;
+            }
+            if (ImGuiMCP::IsItemHovered())
+                ImGuiMCP::SetTooltip("Spend Skill Points");
+        }
+
         ImGuiMCP::Separator();
 
         if (initialized == false){
@@ -81,23 +96,7 @@ static int tempSkillPoints = 0;
             "SkillPoints: %d",
             tempSkillPoints
         );
-
-        if (skillPointsSelected) {
-
-            ImGuiMCP::SameLine();
-
-            if (ImGuiMCP::Button("Level Up") && tempSkillPoints == 0 ) {
-                PapyrusSay(tilaelActor, TFQuest_TFQuestSilentLine_00005A96_1, nullptr, false);
-                tilaelData.skillPoints = tempSkillPoints;
-                tilaelData.level++; 
-                saveConfiguration(tilaelData, tilaelData.configPath); 
-                skillPointsSelected = false;
-            }
-            if (ImGuiMCP::IsItemHovered())
-                ImGuiMCP::SetTooltip("Spend Skill Points");
-        }
-
-        
+  
         ImGuiMCP::Columns(2, nullptr, false);
 
         auto SkillRow = [&](const char* name, RE::ActorValue av)
