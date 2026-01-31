@@ -201,7 +201,7 @@ static int tempSkillPoints = 0;
     }
 
     //  show a copy of the stats to simulate level increasing when pusshing the button
-    // only actually changed when clicking level up button.
+    // skills only actually changed when clicking level up button.
      void fillTempAVMap(RE::Actor* actor, std::unordered_map<int, float>& avMap) {
         for (RE::ActorValue av : {
             RE::ActorValue::kOneHanded, RE::ActorValue::kTwoHanded, RE::ActorValue::kArchery,
@@ -298,6 +298,7 @@ static int tempSkillPoints = 0;
       }
     }
 
+    // communitcate to papyrus through globals 
      void ResetSkillGlobals() {
 
          if (oneHanded)      oneHanded->value = 0.0f;
@@ -310,7 +311,7 @@ static int tempSkillPoints = 0;
          if (restoration)    restoration->value = 0.0f;
      }
 
-
+     // if globakls are zerored then 
      bool checkIfGlobalsZeroed() {
 
          const RE::TESGlobal* globals[] = {
@@ -330,11 +331,12 @@ static int tempSkillPoints = 0;
              }
          }
 
-         return true;  // All globals were 0
+         return true;  
      }
 
 } 
 
+// from my other mmod kept incase I want to make a ini file
 
 /*void saveSettingsToIni() {
       logger::info("Saving ReLight.ini...");

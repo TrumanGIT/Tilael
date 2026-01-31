@@ -22,7 +22,6 @@ struct FollowerData {
    
 };
 
-
 extern FollowerData tilaelData;
 
 extern RE::TESQuest* tilaelQuest;
@@ -85,9 +84,6 @@ inline std::vector<std::string> GetConfigPaths() {
     return paths;
 }
 
-
-
-
 bool loadConfiguration(const FollowerData& followerData, const std::string& configPath);
 
 bool saveConfiguration(const FollowerData& followerData, const std::string& configPath);
@@ -107,13 +103,13 @@ inline void initialize() {
         logger::warn("tilael quest not found.");
     }
     
-    // Silent dialogue topic
+    // Silent dialogue topic to trigger papyrs fragment script
     UI::TFQuest_TFQuestSilentLine_00005A96_1 = dataHandler->LookupForm<RE::TESTopic>(0x700, "Tilael.esp");
     if (!UI::TFQuest_TFQuestSilentLine_00005A96_1) {
         logger::warn("Silent dialogue topic FE005A96 not found.");
     }
 
-    // Globals using only the last 3 digits
+
      oneHanded = dataHandler->LookupForm<RE::TESGlobal>(0x901, "Tilael.esp");
      twoHanded = dataHandler->LookupForm<RE::TESGlobal>(0x902, "Tilael.esp");
      archery = dataHandler->LookupForm<RE::TESGlobal>(0x903, "Tilael.esp");
@@ -123,7 +119,6 @@ inline void initialize() {
      destruction = dataHandler->LookupForm<RE::TESGlobal>(0x907, "Tilael.esp");
      restoration = dataHandler->LookupForm<RE::TESGlobal>(0x908, "Tilael.esp");
 
-    // Optional: warn if any globals are missing
     if (!oneHanded) logger::warn("OneHanded global not found.");
     if (!twoHanded) logger::warn("TwoHanded global not found.");
     if (!archery) logger::warn("Archery global not found.");
