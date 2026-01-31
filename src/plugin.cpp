@@ -18,8 +18,7 @@ public:
 
     RE::BSEventNotifyControl ProcessEvent(const RE::LevelIncrease::Event* event,
         RE::BSTEventSource<RE::LevelIncrease::Event>*) override {
-     
-
+    
         tilaelData.skillPoints += 5; 
         tilaelData.level++; 
 

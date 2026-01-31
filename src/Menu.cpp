@@ -172,11 +172,9 @@ static int tempSkillPoints = 0;
             };
        
         SkillRow("One-Handed", RE::ActorValue::kOneHanded);
-        SkillRow("Two-Handed", RE::ActorValue::kTwoHanded);
         SkillRow("Archery", RE::ActorValue::kArchery);
-        SkillRow("Block", RE::ActorValue::kBlock);
         SkillRow("Light-Armor", RE::ActorValue::kLightArmor);
-        SkillRow("Heavy-Armor", RE::ActorValue::kHeavyArmor);
+        SkillRow("Sneak", RE::ActorValue::kSneak);
         SkillRow("Destruction", RE::ActorValue::kDestruction);
         SkillRow("Restoration", RE::ActorValue::kRestoration);
         ImGuiMCP::Columns(1);
@@ -202,8 +200,9 @@ static int tempSkillPoints = 0;
             ImGuiMCP::End();
     }
 
-
-    void fillTempAVMap(RE::Actor* actor, std::unordered_map<int, float>& avMap) {
+    //  show a copy of the stats to simulate level increasing when pusshing the button
+    // only actually changed when clicking level up button.
+     void fillTempAVMap(RE::Actor* actor, std::unordered_map<int, float>& avMap) {
         for (RE::ActorValue av : {
             RE::ActorValue::kOneHanded, RE::ActorValue::kTwoHanded, RE::ActorValue::kArchery,
                 RE::ActorValue::kBlock, RE::ActorValue::kLightArmor, RE::ActorValue::kHeavyArmor,
@@ -313,7 +312,7 @@ static int tempSkillPoints = 0;
 
 
      bool checkIfGlobalsZeroed() {
-         // Put all globals into an array so we can loop
+
          const RE::TESGlobal* globals[] = {
              oneHanded,
              twoHanded,
