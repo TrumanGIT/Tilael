@@ -56,6 +56,8 @@ static int tempSkillPoints = 0;
 
         getPerksForNPC(tilaelActor);
 
+        getSpellsForNPC(tilaelActor);
+
         tempSkillPoints = tilaelData.skillPoints;
 
         if (tempSkillPoints > 5) {
@@ -93,7 +95,7 @@ static int tempSkillPoints = 0;
 
         // Push + _ buttons to the right side of the window
         float right = ImGuiMCP::GetWindowContentRegionMax().x;
-        ImGuiMCP::SetCursorPosX(right - 300.0f); 
+        ImGuiMCP::SetCursorPosX(right - 600.0f); 
 
         ImGuiMCP::TextColored(
             ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f },
@@ -115,7 +117,6 @@ static int tempSkillPoints = 0;
 
                 ImGuiMCP::PushID(avAsInt);
 
-                
                 bool canIncrement = tempSkillPoints > 0;
 
                 ImGuiMCP::BeginDisabled(!canIncrement);
@@ -183,42 +184,73 @@ static int tempSkillPoints = 0;
         SkillRow("Sneak", RE::ActorValue::kSneak);
         SkillRow("Destruction", RE::ActorValue::kDestruction);
         SkillRow("Restoration", RE::ActorValue::kRestoration);
-        ImGuiMCP::Columns(1);
+        ImGuiMCP::Columns(2);
 
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Perks");
 
-        // Begin child window
-        ImGuiMCP::BeginChild("PerkList", ImGuiMCP::ImVec2(0, 120), true, ImGuiMCP::ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        ImGuiMCP::Indent(10); // slight indent for bullets
+        ImGuiMCP::SameLine();
+        ImGuiMCP::NextColumn();
 
-        const int perksPerColumn = 3; // how many perks per column
-        const int numColumns = 4;     // always 4 columns
+        ImGuiMCP::SetColumnWidth(0, 450);
+        ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Spells");
+        ImGuiMCP::EndColumns();
+
+        float childWidth = 450.0f; // adjust to half your window width
+        float childHeight = 120.0f;
+
+        // --- Perk List ---
+        ImGuiMCP::BeginChild("PerkList", ImGuiMCP::ImVec2(childWidth, childHeight), true, ImGuiMCP::ImGuiWindowFlags_ChildWindow);
+        ImGuiMCP::Indent(10);
+
+        // setup columns
+        const int perksPerColumn = 3;
+        const int numColumns = 4;
         ImGuiMCP::Columns(numColumns, nullptr, false);
-
-        // Optional: fix column widths
-        const float colWidth = 120.0f; // tweak as needed
-        for (int i = 0; i < numColumns; i++) {
-            ImGuiMCP::SetColumnWidth(i, colWidth);
-        }
+        for (int i = 0; i < numColumns; i++)
+            ImGuiMCP::SetColumnWidth(i, 150.0f);
 
         int count = 0;
         for (const auto& [perk, descrip] : perks) {
             ImGuiMCP::TextWrapped("%s", perk.c_str());
-
-            if (ImGuiMCP::IsItemHovered()) {
+            if (ImGuiMCP::IsItemHovered())
                 ImGuiMCP::SetTooltip("%s", descrip.c_str());
-            }
 
             count++;
-            if (count % perksPerColumn == 0) {
-                ImGuiMCP::NextColumn(); // move to next column every 3 perks
-            }
+            if (count % perksPerColumn == 0)
+                ImGuiMCP::NextColumn();
         }
 
         ImGuiMCP::Unindent(10);
         ImGuiMCP::EndChild();
+
+        // Put Spell List on same line
+       
+        ImGuiMCP::SameLine();
+        // --- Spell List ---
+        ImGuiMCP::BeginChild("SpellList", ImGuiMCP::ImVec2(childWidth, childHeight), true, ImGuiMCP::ImGuiWindowFlags_ChildWindow);
+        ImGuiMCP::Indent(10);
+
+        ImGuiMCP::Columns(numColumns, nullptr, false);
+        for (int i = 0; i < numColumns; i++)
+            ImGuiMCP::SetColumnWidth(i, 150.0f);
+
+        int spellCount = 0;
+        for (const auto& [spell, desc] : spells) {
+            ImGuiMCP::TextWrapped("%s", spell.c_str());
+           // if (ImGuiMCP::IsItemHovered())
+               // ImGuiMCP::SetTooltip("%s", desc.c_str());
+
+            spellCount++;
+            if (spellCount % perksPerColumn == 0)
+                ImGuiMCP::NextColumn();
+        }
+
+        ImGuiMCP::Unindent(10);
+        ImGuiMCP::EndChild();
+
+        ImGuiMCP::End();
 
     }
 
@@ -299,6 +331,7 @@ static int tempSkillPoints = 0;
         if (!actor) return; 
 
       auto actorBase = actor->GetActorBase(); 
+      if (!actorBase) return;
  
       int numPerks = actorBase->perkCount; 
 
@@ -319,6 +352,57 @@ static int tempSkillPoints = 0;
           }
       }
     }
+
+    void getSpellsForNPC(RE::Actor* actor) {
+
+       if (!actor) return;
+
+       auto actorBase = actor->GetActorBase();
+
+       if (!actorBase) return;
+
+       int numberOfAddedSpells = actor->GetActorRuntimeData().addedSpells.size();
+
+       // added spells
+       for (int i = 0; i < numberOfAddedSpells; i++) {
+           RE::SpellItem* spell = actor->GetActorRuntimeData().addedSpells[i];
+
+           if (!spell) continue;
+
+               std::string spellName = spell->fullName.c_str();
+
+               RE::BSString desc; 
+               spell->GetDescription(desc, spell); 
+
+               spells[spellName] = std::string(desc.c_str());
+               logger::info("spell {} and its descrip {} ", spellName, desc);
+       }
+
+       if (actorBase->actorEffects)
+       {
+           //base spells
+           int numberOfBaseSpells = actorBase->actorEffects->numSpells;
+
+           for (int i = 0; i < numberOfBaseSpells; i++) {
+
+               RE::SpellItem* spell = actorBase->actorEffects->spells[i];
+
+               if (spell)
+               {
+                   std::string spellName = spell->fullName.c_str();
+
+                   RE::BSString desc;
+
+                   spell->GetDescription(desc, spell);
+
+                   spells[spellName] = std::string(desc.c_str());
+                   logger::info("spell {} and its descrip {} ", spellName, desc);
+
+               }
+           }
+       }
+    }
+    
 
     // communitcate to papyrus through globals 
      void ResetSkillGlobals() {

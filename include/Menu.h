@@ -18,6 +18,8 @@ namespace UI {
 
    inline unordered_map<std::string, std::string>perks;
 
+   inline unordered_map<std::string, std::string>spells;
+
    inline RE::TESTopic* TFQuest_TFQuestSilentLine_00005A96_1;
 
    inline RE::TESQuest* tilaelQuest;
@@ -31,11 +33,15 @@ namespace UI {
     void Register();
     void __stdcall renderTilaelMenu();
 
+
+
     bool getTilaelActor(); 
 
     void displayVital(RE::ActorValue actorValue,const std::string& icon, ImGuiMCP::ImVec4 color);
 
     void getPerksForNPC(RE::Actor* actor);
+
+    void getSpellsForNPC(RE::Actor* actor);
 
     RE::TESGlobal* GetGlobalForActorValue(RE::ActorValue av);
 
