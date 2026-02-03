@@ -40,7 +40,13 @@ static void MessageHandler(SKSE::MessagingInterface::Message* msg) {
     }
     case SKSE::MessagingInterface::kNewGame:
     {
-    
+       
+
+        tilaelData.level = 1; 
+
+        tilaelData.skillPoints = 5;
+
+        saveConfiguration(tilaelData, tilaelData.configPath);
 
         break;
     }

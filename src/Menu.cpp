@@ -193,10 +193,17 @@ static int tempSkillPoints = 0;
         ImGuiMCP::BeginChild("PerkList", ImGuiMCP::ImVec2(0, 120), true, ImGuiMCP::ImGuiWindowFlags_AlwaysVerticalScrollbar);
         ImGuiMCP::Indent(10); // slight indent for bullets
 
-        const int perksPerColumn = 3; // put 3 perks per column
-        int count = 0;
-        ImGuiMCP::Columns((perks.size() + perksPerColumn - 1) / perksPerColumn, nullptr, false);
+        const int perksPerColumn = 3; // how many perks per column
+        const int numColumns = 4;     // always 4 columns
+        ImGuiMCP::Columns(numColumns, nullptr, false);
 
+        // Optional: fix column widths
+        const float colWidth = 120.0f; // tweak as needed
+        for (int i = 0; i < numColumns; i++) {
+            ImGuiMCP::SetColumnWidth(i, colWidth);
+        }
+
+        int count = 0;
         for (const auto& [perk, descrip] : perks) {
             ImGuiMCP::TextWrapped("%s", perk.c_str());
 
@@ -210,9 +217,9 @@ static int tempSkillPoints = 0;
             }
         }
 
-        ImGuiMCP::Columns(1); // reset columns
         ImGuiMCP::Unindent(10);
         ImGuiMCP::EndChild();
+
     }
 
     //  show a copy of the stats to simulate level increasing when pusshing the button
