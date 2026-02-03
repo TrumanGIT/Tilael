@@ -39,10 +39,11 @@ static int tempSkillPoints = 0;
 
             if (ImGuiMCP::Button("Level Up")) {
                 PapyrusSay(tilaelActor, TFQuest_TFQuestSilentLine_00005A96_1, nullptr, false);
-                tilaelData.skillPoints = tempSkillPoints;
+                tilaelData.skillPoints -= 5; 
                 tilaelData.level++;
                 saveConfiguration(tilaelData, tilaelData.configPath);
                 skillPointsSelected = false;
+                initialized = false;
             }
             if (ImGuiMCP::IsItemHovered())
                 ImGuiMCP::SetTooltip("Spend Skill Points");
@@ -58,6 +59,10 @@ static int tempSkillPoints = 0;
 
         tempSkillPoints = tilaelData.skillPoints;
 
+        if (tempSkillPoints > 5) {
+            tempSkillPoints = 5;
+        }
+
         ResetSkillGlobals();
 
         fillTempAVMap(tilaelActor, tempAVs); 
@@ -69,9 +74,10 @@ static int tempSkillPoints = 0;
         initialized = true;
 
         ImGuiMCP::Separator();
-        ImGuiMCP::Spacing();
+       // ImGuiMCP::Spacing();
 
         FontAwesome::PushSolid();
+
 
         displayVital(RE::ActorValue::kHealth, healthIcon, { 1.0f, 0.0f, 0.0f, 1.0f });
 
@@ -87,9 +93,9 @@ static int tempSkillPoints = 0;
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Skills");
         ImGuiMCP::SameLine();
 
-        // Push cursor to the right side of the window
+        // Push + _ buttons to the right side of the window
         float right = ImGuiMCP::GetWindowContentRegionMax().x;
-        ImGuiMCP::SetCursorPosX(right - 350.0f); // tweak width as needed
+        ImGuiMCP::SetCursorPosX(right - 300.0f); 
 
         ImGuiMCP::TextColored(
             ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f },
@@ -101,76 +107,78 @@ static int tempSkillPoints = 0;
 
         auto SkillRow = [&](const char* name, RE::ActorValue av)
             {
+                const auto avAsInt = static_cast<int>(av);
+
                 ImGuiMCP::Text("%s", name);
                 ImGuiMCP::NextColumn();
 
-                const auto& avAsInt = static_cast<int>(av);
-            
-                ImGuiMCP::Text("%.0f",tempAVs[avAsInt]);
+                ImGuiMCP::Text("%.0f", tempAVs[avAsInt]);
+                ImGuiMCP::SameLine();
 
-                if (tempSkillPoints > 0) 
+                ImGuiMCP::PushID(avAsInt);
+
+                
+                bool canIncrement = tempSkillPoints > 0;
+
+                ImGuiMCP::BeginDisabled(!canIncrement);
+
+                ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Button,
+                    canIncrement ? ImGuiMCP::ImVec4{ 0.5f,0.7f,1.f,1.f } : ImGuiMCP::ImVec4{ 0,0,0,0 });
+                ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered,
+                    ImGuiMCP::ImVec4{ 0.6f,0.8f,1.f,1.f });
+                ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonActive,
+                    ImGuiMCP::ImVec4{ 0.4f,0.6f,0.9f,1.f });
+
+                if (ImGuiMCP::SmallButton("+") && canIncrement)
                 {
-                    ImGuiMCP::SameLine();
-
-                    ImGuiMCP::PushID(avAsInt);
-
-                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Button, { 0.5f, 0.7f, 1.f, 1.f });
-                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered, ImGuiMCP::ImVec4{ 0.6f, 0.8f, 1.f, 1.f });
-                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonActive, ImGuiMCP::ImVec4{ 0.4f, 0.6f, 0.9f, 1.f });
-
-                    if (ImGuiMCP::SmallButton("+"))
-                    {
-                        if (auto global = GetGlobalForActorValue(av)) {
-                            global->value += 1.0f;
-                            logger::info(" added global value: {}", global->value);
-                            tempSkillPoints -= 1;
-                            tempAVs[avAsInt] += 1;
-                            skillPointsSelected = true;
-                        }
+                    if (auto global = GetGlobalForActorValue(av)) {
+                        global->value += 1;
+                        tempSkillPoints--;
+                        tempAVs[avAsInt]++;
+                        skillPointsSelected = true;
                     }
                 }
+
+                ImGuiMCP::PopStyleColor(3);
+                ImGuiMCP::EndDisabled();
 
                 ImGuiMCP::SameLine();
 
-                ImGuiMCP::PopStyleColor(3);
-                ImGuiMCP::PopID();
+                bool canDecrement = false;
+                if (auto global = GetGlobalForActorValue(av)) {
+                    canDecrement =
+                        skillPointsSelected &&
+                        global->value > 0 &&
+                        tempAVs[avAsInt] > intialAVs[avAsInt];
+                }
 
-                if (skillPointsSelected == true) {
-                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Button,
-                        ImGuiMCP::ImVec4{ 0.85f, 0.2f, 0.2f, 1.f });
+                ImGuiMCP::BeginDisabled(!canDecrement);
 
-                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered,
-                        ImGuiMCP::ImVec4{ 0.95f, 0.3f, 0.3f, 1.f });
+                ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Button,
+                    canDecrement ? ImGuiMCP::ImVec4{ 0.85f,0.2f,0.2f,1.f } : ImGuiMCP::ImVec4{ 0,0,0,0 });
+                ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered,
+                    ImGuiMCP::ImVec4{ 0.95f,0.3f,0.3f,1.f });
+                ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonActive,
+                    ImGuiMCP::ImVec4{ 0.75f,0.15f,0.15f,1.f });
 
-                    ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonActive,
-                        ImGuiMCP::ImVec4{ 0.75f, 0.15f, 0.15f, 1.f });
-
-                    if (ImGuiMCP::SmallButton("- "))
-                    {
-                        if (auto global = GetGlobalForActorValue(av)) {
-
-                            logger::info("temp av = {} Initial AV = {}", tempAVs[avAsInt], intialAVs[avAsInt]);
-
-                            // Only subtract if above the initial value
-                            if (tempAVs[avAsInt] > intialAVs[avAsInt]) {
-                                global->value -= 1.0f;
-                                tempSkillPoints += 1;
-                                tempAVs[avAsInt] -= 1;
-                                if (checkIfGlobalsZeroed()) skillPointsSelected = false;
-                            }
-
-                            // else: do nothing, but still pop afterwards
-                        }
+                if (ImGuiMCP::SmallButton("-") && canDecrement)
+                {
+                    if (auto global = GetGlobalForActorValue(av)) {
+                        global->value--;
+                        tempSkillPoints++;
+                        tempAVs[avAsInt]--;
+                        if (checkIfGlobalsZeroed())
+                            skillPointsSelected = false;
                     }
                 }
 
-
                 ImGuiMCP::PopStyleColor(3);
-                ImGuiMCP::PopID();
+                ImGuiMCP::EndDisabled();
 
+                ImGuiMCP::PopID();
                 ImGuiMCP::NextColumn();
             };
-       
+
         SkillRow("One-Handed", RE::ActorValue::kOneHanded);
         SkillRow("Archery", RE::ActorValue::kArchery);
         SkillRow("Light-Armor", RE::ActorValue::kLightArmor);
@@ -203,9 +211,10 @@ static int tempSkillPoints = 0;
     //  show a copy of the stats to simulate level increasing when pusshing the button
     // skills only actually changed when clicking level up button.
      void fillTempAVMap(RE::Actor* actor, std::unordered_map<int, float>& avMap) {
+         if (!actor) return; 
         for (RE::ActorValue av : {
-            RE::ActorValue::kOneHanded, RE::ActorValue::kTwoHanded, RE::ActorValue::kArchery,
-                RE::ActorValue::kBlock, RE::ActorValue::kLightArmor, RE::ActorValue::kHeavyArmor,
+            RE::ActorValue::kOneHanded, RE::ActorValue::kArchery,
+                RE::ActorValue::kSneak, RE::ActorValue::kLightArmor, RE::ActorValue::kHeavyArmor,
                 RE::ActorValue::kDestruction, RE::ActorValue::kRestoration
         }) {
             int key = static_cast<int>(av);
@@ -219,11 +228,9 @@ static int tempSkillPoints = 0;
 
         switch (av) {
         case RE::ActorValue::kOneHanded:   return oneHanded;
-        case RE::ActorValue::kTwoHanded:   return twoHanded;
         case RE::ActorValue::kArchery:     return archery;
-        case RE::ActorValue::kBlock:       return block;
+        case RE::ActorValue::kSneak:       return sneak;
         case RE::ActorValue::kLightArmor:  return lightArmor;
-        case RE::ActorValue::kHeavyArmor:  return heavyArmor;
         case RE::ActorValue::kDestruction: return destruction;
         case RE::ActorValue::kRestoration: return restoration;
         default: return nullptr;
@@ -237,6 +244,7 @@ static int tempSkillPoints = 0;
         ImGuiMCP::PopStyleColor();
         ImGuiMCP::SameLine();
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Text, ImGuiMCP::ImVec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+        if (!tilaelActor) return;
         ImGuiMCP::Text("%.0f", tilaelActor->GetActorValueMax(actorValue));
         ImGuiMCP::PopStyleColor();
     }
@@ -302,11 +310,9 @@ static int tempSkillPoints = 0;
      void ResetSkillGlobals() {
 
          if (oneHanded)      oneHanded->value = 0.0f;
-         if (twoHanded)      twoHanded->value = 0.0f;
          if (archery)        archery->value = 0.0f;
-         if (block)          block->value = 0.0f;
+         if (sneak)          sneak->value = 0.0f;
          if (lightArmor)     lightArmor->value = 0.0f;
-         if (heavyArmor)     heavyArmor->value = 0.0f;
          if (destruction)    destruction->value = 0.0f;
          if (restoration)    restoration->value = 0.0f;
      }
@@ -316,11 +322,9 @@ static int tempSkillPoints = 0;
 
          const RE::TESGlobal* globals[] = {
              oneHanded,
-             twoHanded,
              archery,
-             block,
+             sneak,
              lightArmor,
-             heavyArmor,
              destruction,
              restoration
          };
