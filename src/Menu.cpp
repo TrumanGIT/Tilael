@@ -54,10 +54,6 @@ static int tempSkillPoints = 0;
 
         if (!getTilaelActor()) return;
 
-        getPerksForNPC(tilaelActor);
-
-        getSpellsForNPC(tilaelActor);
-
         tempSkillPoints = tilaelData.skillPoints;
 
         if (tempSkillPoints > 5) {
@@ -71,6 +67,10 @@ static int tempSkillPoints = 0;
         fillTempAVMap(tilaelActor, intialAVs);
 
         }
+
+        getPerksForNPC(tilaelActor);
+
+        getSpellsForNPC(tilaelActor);
 
         initialized = true;
 
@@ -95,7 +95,7 @@ static int tempSkillPoints = 0;
 
         // Push + _ buttons to the right side of the window
         float right = ImGuiMCP::GetWindowContentRegionMax().x;
-        ImGuiMCP::SetCursorPosX(right - 600.0f); 
+        ImGuiMCP::SetCursorPosX(right - 545.0f); 
 
         ImGuiMCP::TextColored(
             ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f },
@@ -105,6 +105,7 @@ static int tempSkillPoints = 0;
   
         ImGuiMCP::Columns(2, nullptr, false);
 
+        ImGuiMCP::SetColumnWidth(0, 500);
         auto SkillRow = [&](const char* name, RE::ActorValue av)
             {
                 const auto avAsInt = static_cast<int>(av);
@@ -184,32 +185,29 @@ static int tempSkillPoints = 0;
         SkillRow("Sneak", RE::ActorValue::kSneak);
         SkillRow("Destruction", RE::ActorValue::kDestruction);
         SkillRow("Restoration", RE::ActorValue::kRestoration);
-        ImGuiMCP::Columns(2);
-
+        ImGuiMCP::EndColumns();
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Perks");
 
         ImGuiMCP::SameLine();
-        ImGuiMCP::NextColumn();
-
-        ImGuiMCP::SetColumnWidth(0, 450);
+        float rightSpells = ImGuiMCP::GetWindowContentRegionMax().x;
+        ImGuiMCP::SetCursorPosX(rightSpells - 535.0f);
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Spells");
-        ImGuiMCP::EndColumns();
 
-        float childWidth = 450.0f; // adjust to half your window width
-        float childHeight = 120.0f;
+      
+        float childWidth = 500.0f; // adjust to half your window width
+        float childHeight = 160.0f;
 
         // --- Perk List ---
         ImGuiMCP::BeginChild("PerkList", ImGuiMCP::ImVec2(childWidth, childHeight), true, ImGuiMCP::ImGuiWindowFlags_ChildWindow);
-        ImGuiMCP::Indent(10);
 
         // setup columns
-        const int perksPerColumn = 3;
+        const int perksPerColumn = 4;
         const int numColumns = 4;
         ImGuiMCP::Columns(numColumns, nullptr, false);
         for (int i = 0; i < numColumns; i++)
-            ImGuiMCP::SetColumnWidth(i, 150.0f);
+            ImGuiMCP::SetColumnWidth(i, 170.0f);
 
         int count = 0;
         for (const auto& [perk, descrip] : perks) {
