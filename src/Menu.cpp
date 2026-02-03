@@ -8,7 +8,6 @@ namespace logger = SKSE::log;
 
 namespace UI {
 
-
 static int tempSkillPoints = 0;
 
     void Register() {
@@ -63,7 +62,7 @@ static int tempSkillPoints = 0;
             tempSkillPoints = 5;
         }
 
-        ResetSkillGlobals();
+      //  ResetSkillGlobals();
 
         fillTempAVMap(tilaelActor, tempAVs); 
 
@@ -77,7 +76,6 @@ static int tempSkillPoints = 0;
        // ImGuiMCP::Spacing();
 
         FontAwesome::PushSolid();
-
 
         displayVital(RE::ActorValue::kHealth, healthIcon, { 1.0f, 0.0f, 0.0f, 1.0f });
 
@@ -189,11 +187,15 @@ static int tempSkillPoints = 0;
 
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
-
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Perks");
 
+        // Begin child window
         ImGuiMCP::BeginChild("PerkList", ImGuiMCP::ImVec2(0, 120), true, ImGuiMCP::ImGuiWindowFlags_AlwaysVerticalScrollbar);
         ImGuiMCP::Indent(10); // slight indent for bullets
+
+        const int perksPerColumn = 3; // put 3 perks per column
+        int count = 0;
+        ImGuiMCP::Columns((perks.size() + perksPerColumn - 1) / perksPerColumn, nullptr, false);
 
         for (const auto& [perk, descrip] : perks) {
             ImGuiMCP::TextWrapped("%s", perk.c_str());
@@ -201,11 +203,16 @@ static int tempSkillPoints = 0;
             if (ImGuiMCP::IsItemHovered()) {
                 ImGuiMCP::SetTooltip("%s", descrip.c_str());
             }
+
+            count++;
+            if (count % perksPerColumn == 0) {
+                ImGuiMCP::NextColumn(); // move to next column every 3 perks
+            }
         }
 
+        ImGuiMCP::Columns(1); // reset columns
         ImGuiMCP::Unindent(10);
         ImGuiMCP::EndChild();
-            ImGuiMCP::End();
     }
 
     //  show a copy of the stats to simulate level increasing when pusshing the button
@@ -331,6 +338,7 @@ static int tempSkillPoints = 0;
 
          for (auto g : globals) {
              if (g && g->value != 0.0f) {
+                 logger::info("global {} = {}", g->GetName(), g->value);
                  return false;  
              }
          }
