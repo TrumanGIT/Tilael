@@ -93,7 +93,6 @@ static int tempSkillPoints = 0;
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Skills");
         ImGuiMCP::SameLine();
 
-        // Push + _ buttons to the right side of the window
         float right = ImGuiMCP::GetWindowContentRegionMax().x;
         ImGuiMCP::SetCursorPosX(right - 545.0f); 
 
@@ -196,13 +195,13 @@ static int tempSkillPoints = 0;
         ImGuiMCP::TextColored(ImGuiMCP::ImVec4{ 0.5f, 0.7f, 1.f, 1.f }, "Spells");
 
       
-        float childWidth = 500.0f; // adjust to half your window width
+        float childWidth = 500.0f; 
         float childHeight = 160.0f;
 
-        // --- Perk List ---
+
         ImGuiMCP::BeginChild("PerkList", ImGuiMCP::ImVec2(childWidth, childHeight), true, ImGuiMCP::ImGuiWindowFlags_ChildWindow);
 
-        // setup columns
+
         const int perksPerColumn = 4;
         const int numColumns = 4;
         ImGuiMCP::Columns(numColumns, nullptr, false);
@@ -223,10 +222,8 @@ static int tempSkillPoints = 0;
         ImGuiMCP::Unindent(10);
         ImGuiMCP::EndChild();
 
-        // Put Spell List on same line
        
         ImGuiMCP::SameLine();
-        // --- Spell List ---
         ImGuiMCP::BeginChild("SpellList", ImGuiMCP::ImVec2(childWidth, childHeight), true, ImGuiMCP::ImGuiWindowFlags_ChildWindow);
         ImGuiMCP::Indent(10);
 
@@ -482,4 +479,5 @@ static int tempSkillPoints = 0;
 
       outFile.close();
       logger::info("ReLight.ini saved successfully!");
+
   }*/
